@@ -26,6 +26,8 @@ import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 
 /**
+ * 建造者模式：用于创建SqlSessionFactory工厂对象
+ *
  * Builds {@link SqlSession} instances.
  *
  * @author Clinton Begin
@@ -44,13 +46,26 @@ public class SqlSessionFactoryBuilder {
     return build(reader, null, properties);
   }
 
+  /**
+   * 创建SqlSessionFactory工厂对象
+   *
+   * @param reader 读取XML文档或特定的SqlMapConfig.xml文件的Reader对象
+   * @param environment 可选参数，配置加载哪种环境（如开发环境或生产环境）、配置数据源和事务管理器等
+   * @param properties 可选参数，配置属性配置文件
+   * @return
+   */
   public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
     try {
+      // 通过XMLConfigBuilder解析XML文件
       XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
+      // 构建SqlSessionFactory对象(DefaultSqlSessionFactory)
+      // parser.parse()读取配置文件中的属性
       return build(parser.parse());
     } catch (Exception e) {
+      // 捕获异常并抛出
       throw ExceptionFactory.wrapException("Error building SqlSession.", e);
     } finally {
+      // 清空ErrorContext上下文
       ErrorContext.instance().reset();
       try {
         reader.close();
@@ -72,6 +87,7 @@ public class SqlSessionFactoryBuilder {
     return build(inputStream, null, properties);
   }
 
+  // 类似于public SqlSessionFactory build(Reader reader, String environment, Properties properties)方法
   public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
     try {
       XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, environment, properties);

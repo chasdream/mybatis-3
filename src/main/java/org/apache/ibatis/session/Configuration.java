@@ -96,6 +96,8 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * mybatis配置信息类，主要用来解析存储mybatis-config.xml文件中的配置
+ *
  * @author Clinton Begin
  */
 public class Configuration {
@@ -144,12 +146,14 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+  // mapper接口代理注册器
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  // mapper文件的select/update等语句的id和sql语句属性
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
@@ -599,7 +603,9 @@ public class Configuration {
   }
 
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+    // 判断执行器类型
     executorType = executorType == null ? defaultExecutorType : executorType;
+    // 这里为什么会判断两次？为防止defaultExecutorType被设置成null？
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
     Executor executor;
     if (ExecutorType.BATCH == executorType) {
@@ -609,9 +615,11 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // 是否需要进行缓存，如果需要缓存会生成CachingExecutor对象，默认有缓存，一级缓存，采用装饰器设计模式
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 调用插件，通过插件可以修改Executor的行为
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }
@@ -771,6 +779,7 @@ public class Configuration {
     mapperRegistry.addMappers(packageName);
   }
 
+  // 将解析的mapper增加到MapperRegistry代理注册器中
   public <T> void addMapper(Class<T> type) {
     mapperRegistry.addMapper(type);
   }
