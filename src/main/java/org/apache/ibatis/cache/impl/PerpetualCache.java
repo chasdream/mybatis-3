@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
+ *    Copyright 2009-2022 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -22,12 +22,16 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * mybatis缓存
+ *
  * @author Clinton Begin
  */
 public class PerpetualCache implements Cache {
 
+  // 缓存的ID：表示该缓存的名字
   private final String id;
 
+  // 保存数据库的查询结果
   private Map<Object, Object> cache = new HashMap<>();
 
   public PerpetualCache(String id) {

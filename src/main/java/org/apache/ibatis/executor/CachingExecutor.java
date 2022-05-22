@@ -79,6 +79,7 @@ public class CachingExecutor implements Executor {
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameterObject);
+    // 一级缓存Key创建
     CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
     return query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
@@ -93,19 +94,26 @@ public class CachingExecutor implements Executor {
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)
       throws SQLException {
     Cache cache = ms.getCache();
+    // 检查mapper.xml映射文件中是否配置了<cache/>标签
     if (cache != null) {
+      // 增删改，将清除缓存
       flushCacheIfRequired(ms);
+      // 解析<select/>标签的useCache参数是否配置需要二级缓存
       if (ms.isUseCache() && resultHandler == null) {
         ensureNoOutParams(ms, boundSql);
         @SuppressWarnings("unchecked")
+          // 查看缓存中是否有需要的数据
         List<E> list = (List<E>) tcm.getObject(cache, key);
         if (list == null) {
+          // 缓存中没有需要的数据，则执行下层的Executor对象
           list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+          // 将下层Executor(数据库或一级缓存)返回的结果放入到二级缓存中
           tcm.putObject(cache, key, list); // issue #578 and #116
         }
         return list;
       }
     }
+    // 若未配置<cache/>标签，则二级缓存未开启，直接调用BaseExecutor.query()方法查询（一级缓存或DB中的数据)
     return delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
   }
 

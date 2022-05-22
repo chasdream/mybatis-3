@@ -66,15 +66,21 @@ public class CacheKey implements Cloneable, Serializable {
     return updateList.size();
   }
 
+  // 每次向CacheKey添加数据是都要调用该方法
   public void update(Object object) {
+    // 计算入参对象的hash值
     int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
 
     count++;
     checksum += baseHashCode;
     baseHashCode *= count;
 
+    // 计算CacheKey对象哈希值
+    // hashCode()方法返回的就是hashCode值
+    // multiplier = 37
     hashcode = multiplier * hashcode + baseHashCode;
 
+    // updateList是List对象，用于保存原始数据，比较两个CacheKey是否相等，即比较updateList中的数据
     updateList.add(object);
   }
 

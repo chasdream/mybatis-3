@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
+ *    Copyright 2009-2022 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,19 +21,31 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
+ * 类型转换器接口
+ *
  * @author Clinton Begin
  */
 public interface TypeHandler<T> {
 
+  /**
+   * 通过PreparedStatement对象设置参数，将T类型的数据存入数据库
+   */
   void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**
+   * 通过列名获取结果数据，也可以通过CallableStatement获取数据
    * @param columnName Colunm name, when configuration <code>useColumnLabel</code> is <code>false</code>
    */
   T getResult(ResultSet rs, String columnName) throws SQLException;
 
+  /**
+   * 通过下标来获取结果数据，也可以通过CallableStatement获取数据
+   */
   T getResult(ResultSet rs, int columnIndex) throws SQLException;
 
+  /**
+   * 通过CallableStatement获取数据
+   */
   T getResult(CallableStatement cs, int columnIndex) throws SQLException;
 
 }
